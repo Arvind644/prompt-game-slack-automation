@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "crons": [
+    {
+      "path": "/api/post-slack-answer",
+      "schedule": "*/5 * * * *"
+    }
+  ],
+  "env": {
+    "DATABASE_URL": "@database_url",
+    "SLACK_BOT_TOKEN": "@slack_bot_token",
+    "SLACK_CHANNEL_ID": "@slack_channel_id",
+    "API_SECRET_TOKEN": "@api_secret_token",
+    "NOTIFICATION_HOUR": "9",
+    "NODE_ENV": "production"
+  },
+  "buildCommand": "npm install"
+} 
