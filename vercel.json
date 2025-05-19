@@ -7,8 +7,7 @@
     }
   ],
   "env": {
-    "NODE_ENV": "production",
-    "TZ": "Asia/Kolkata"
+    "NODE_ENV": "production"
   },
   "buildCommand": "npm install"
 } 
