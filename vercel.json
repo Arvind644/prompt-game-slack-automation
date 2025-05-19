@@ -9,5 +9,16 @@
   "env": {
     "NODE_ENV": "production"
   },
-  "buildCommand": "npm install"
+  "builds": [
+    {
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/api/$1"
+    }
+  ]
 } 
