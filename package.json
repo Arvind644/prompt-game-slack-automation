@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node test-local.js"
+    "start": "node test-local.js",
+    "install:linux-x64": "npm install --arch=x64 --platform=linux --verbose"
   },
   "dependencies": {
     "@vercel/node": "^2.15.3",
