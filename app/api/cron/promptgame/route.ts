@@ -1,35 +1,46 @@
-const dayjs = require('dayjs');
-const { getPromptFromPreviousDay } = require('../db/database');
-const { postToSlack, formatPromptMessage } = require('../db/slack');
+// Make sure to install these dependencies:
+// npm install dayjs
+import { NextRequest, NextResponse } from 'next/server';
+import dayjs from 'dayjs';
+
+// Note: You need to create these modules in the Next.js project:
+// - demo/app/api/db/database.ts
+// - demo/app/api/db/slack.ts
+// They should export the same functions as the original files
+import { getPromptFromPreviousDay } from '@/db/database';
+import { postToSlack, formatPromptMessage } from '@/db/slack';
 
 /**
- * Vercel serverless function to post yesterday's prompt to Slack
+ * Next.js API route to post yesterday's prompt to Slack
  * This function can be triggered:
  * 1. Via a scheduled cron job (using Vercel Cron)
  * 2. Via direct HTTP call with proper authorization
  */
-module.exports = async (req, res) => {
+export async function GET(req: NextRequest) {
   try {
     // Check if this is a scheduled execution or an HTTP request
-    const isScheduled = req.headers['x-vercel-cron'] === 'true';
+    const isScheduled = req.headers.get('x-vercel-cron') === 'true';
     
     // If it's an HTTP request, add basic authorization check
     if (!isScheduled) {
-      const authHeader = req.headers.authorization;
+      const authHeader = req.headers.get('authorization');
       const expectedToken = process.env.API_SECRET_TOKEN;
       
       if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
       }
       
       // Check if we're in the correct time window (e.g., between 9 AM and 10 AM)
       // Skip this check if a 'force' parameter is provided
-      if (!req.query.force) {
+      const { searchParams } = new URL(req.url);
+      const force = searchParams.get('force');
+      
+      if (!force) {
         const currentHour = dayjs().hour();
         const targetHour = parseInt(process.env.NOTIFICATION_HOUR || '9', 10);
         
         if (currentHour !== targetHour) {
-          return res.status(200).json({ 
+          return NextResponse.json({ 
             message: 'Not the correct time window for posting', 
             currentHour,
             targetHour
@@ -49,21 +60,21 @@ module.exports = async (req, res) => {
     
     // Return the result
     if (slackResponse.success) {
-      return res.status(200).json({ 
+      return NextResponse.json({ 
         message: 'Successfully posted to Slack',
         promptId: yesterdayPrompt?._id || null
       });
     } else {
-      return res.status(500).json({ 
+      return NextResponse.json({ 
         error: 'Failed to post to Slack',
         details: slackResponse.error
-      });
+      }, { status: 500 });
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in slack notification function:', error);
-    return res.status(500).json({ 
+    return NextResponse.json({ 
       error: 'Internal server error',
       message: error.message
-    });
+    }, { status: 500 });
   }
-}; 
+}

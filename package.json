@@ -1,18 +1,33 @@
 {
-  "name": "prompt-game-slack-notifier",
-  "version": "1.0.0",
-  "description": "Serverless function to post prompt game answers to Slack",
-  "main": "index.js",
+  "name": "demo",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node test-local.js",
-    "install:linux-x64": "npm install --arch=x64 --platform=linux --verbose"
+    "start:next": "node test-local-next.js"
   },
   "dependencies": {
-    "@vercel/node": "^2.15.3",
-    "axios": "^1.4.0",
-    "pg": "^8.11.0",
-    "dayjs": "^1.11.9",
-    "dotenv": "^16.3.1"
+    "axios": "^1.9.0",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.5.0",
+    "next": "15.3.2",
+    "pg": "^8.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.3.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
-} 
+}

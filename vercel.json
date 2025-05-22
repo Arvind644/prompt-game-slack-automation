@@ -1,8 +1,7 @@
 {
-  "installCommand": "npm run install:linux-x64",
   "crons": [
     {
-      "path": "/api/cron/post-slack-answer",
+      "path": "/api/cron/promptgame",
       "schedule": "0 * * * *"
     }
   ]

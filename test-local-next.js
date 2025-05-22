@@ -1,7 +1,5 @@
 // Load environment variables from .env.local file
 require('dotenv').config({ path: '.env.local' });
-
-const slackFunction = require('./api/post-slack-answer');
 const { getPromptFromPreviousDay } = require('./db/database');
 const { formatPromptMessage, postToSlack } = require('./db/slack');
 
@@ -9,30 +7,6 @@ const { formatPromptMessage, postToSlack } = require('./db/slack');
 const args = process.argv.slice(2);
 const testDate = args.find(arg => arg.startsWith('--date='))?.split('=')[1];
 const skipSlack = args.includes('--skip-slack');
-
-// Create mock request and response objects
-const mockReq = {
-  headers: {
-    // Simulate a direct call rather than scheduled
-    'x-vercel-cron': 'false',
-    'authorization': `Bearer ${process.env.API_SECRET_TOKEN}`
-  },
-  query: {
-    // Force execution regardless of time
-    force: true
-  }
-};
-
-const mockRes = {
-  status: (code) => {
-    console.log(`Response status: ${code}`);
-    return mockRes;
-  },
-  json: (data) => {
-    console.log('Response data:', JSON.stringify(data, null, 2));
-    return mockRes;
-  }
-};
 
 // Function to test only the database connection with a specific date
 async function testDatabaseOnly(dateStr) {
@@ -116,6 +90,77 @@ async function testDatabaseOnly(dateStr) {
   }
 }
 
+// Run the entire prompt-game flow with simulated Next.js handlers
+async function runNextStyleTest() {
+  try {
+    console.log('Testing Next.js API route flow...');
+    console.log('This simulates how the Next.js API route would function');
+    
+    // Create simulated NextRequest and NextResponse
+    const req = {
+      headers: {
+        get: (name) => {
+          if (name === 'x-vercel-cron') return 'false';
+          if (name === 'authorization') return `Bearer ${process.env.API_SECRET_TOKEN}`;
+          return null;
+        }
+      },
+      url: `http://localhost:3000/api/cron/promptgame?force=true`,
+      nextUrl: new URL(`http://localhost:3000/api/cron/promptgame?force=true`)
+    };
+    
+    // Get yesterday's prompt from the database
+    console.log('Getting yesterday\'s prompt...');
+    const yesterdayPrompt = await getPromptFromPreviousDay();
+    
+    if (!yesterdayPrompt) {
+      console.log('No prompt found for yesterday');
+      return { 
+        status: 404,
+        data: { message: 'No prompt found for yesterday' }
+      };
+    }
+    
+    // Format the message
+    console.log('Formatting prompt message...');
+    const message = formatPromptMessage(yesterdayPrompt);
+    
+    // Post the message to Slack
+    console.log('Posting to Slack...');
+    const slackResponse = await postToSlack(message);
+    
+    // Return the result
+    if (slackResponse.success) {
+      console.log('Successfully posted to Slack');
+      return {
+        status: 200,
+        data: { 
+          message: 'Successfully posted to Slack',
+          promptId: yesterdayPrompt?._id || null
+        }
+      };
+    } else {
+      console.error('Failed to post to Slack:', slackResponse.error);
+      return {
+        status: 500,
+        data: { 
+          error: 'Failed to post to Slack',
+          details: slackResponse.error
+        }
+      };
+    }
+  } catch (error) {
+    console.error('Error in Next.js route simulation:', error);
+    return {
+      status: 500,
+      data: { 
+        error: 'Internal server error',
+        message: error.message
+      }
+    };
+  }
+}
+
 // Run the function
 async function runTest() {
   console.log('Starting test execution...');
@@ -134,7 +179,9 @@ async function runTest() {
   }
   
   try {
-    await slackFunction(mockReq, mockRes);
+    // Run the test that simulates the Next.js API route
+    const result = await runNextStyleTest();
+    console.log('Test result:', result);
     console.log('Test completed.');
   } catch (error) {
     console.error('Test failed with error:', error);

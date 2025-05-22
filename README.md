@@ -1,90 +1,36 @@
-# Prompt Game Slack Notifier
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-A Vercel serverless function that posts yesterday's prompt from the Prompt Game to a Slack channel using a Slack bot.
+## Getting Started
 
-## How It Works
+First, run the development server:
 
-This serverless function:
-1. Retrieves the prompt from the previous day from the PostgreSQL database
-2. Formats it into a nice Slack message
-3. Posts it to a specific Slack channel via a Slack bot
-4. Runs automatically every day at 9:00 AM via Vercel Cron
-
-## Setup Instructions
-
-### Environment Variables
-
-Set up the following environment variables in your Vercel project:
-
-- `DATABASE_URL`: Your PostgreSQL connection string
-- `SLACK_BOT_TOKEN`: Your Slack bot's OAuth token (starts with `xoxb-`)
-- `SLACK_CHANNEL_ID`: The ID of the Slack channel to post to
-- `API_SECRET_TOKEN`: A secret token for authorizing API calls
-- `NOTIFICATION_HOUR`: The hour of the day (0-23) when notifications should be sent (defaults to 9)
-- `NODE_ENV`: Environment (set to "production" for deployment)
-
-### Vercel Deployment
-
-1. Push this code to a GitHub repository
-2. Connect the repository to Vercel
-3. Configure the environment variables in Vercel
-4. Deploy the project
-
-### Manual Triggering
-
-You can manually trigger the function by making a POST request to:
-
-```
-https://your-vercel-project.vercel.app/api/post-slack-answer
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Include an Authorization header:
-```
-Authorization: Bearer YOUR_API_SECRET_TOKEN
-```
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Add `?force=true` to the URL to bypass the time window check.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Database Schema
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-The function expects your PostgreSQL database to have a 'daily_images' table with columns:
-- `id`: Primary key
-- `prompt`: The actual prompt text
-- `image_url`: URL to the image
-- `embedding`: Embedding vector data
-- `created_at`: Timestamp when the prompt was created/active
+## Learn More
 
-## Testing Locally
+To learn more about Next.js, take a look at the following resources:
 
-You can test the function locally by running:
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-```
-npm start
-```
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-This will:
-1. Load environment variables from `.env.local`
-2. Test the connection to your database
-3. Check for yesterday's prompt
-4. Format and post the message to Slack
+## Deploy on Vercel
 
-### Advanced Testing Options
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-To test with a specific date:
-
-```
-node test-local.js --date=2025-05-15
-```
-
-To test without posting to Slack:
-
-```
-node test-local.js --date=2025-05-15 --skip-slack
-```
-
-See the detailed setup guide in `setup-guide.md` for full instructions on setting up your Slack bot and configuring the environment.
-
-## Customization
-
-- Edit `db/slack.js` to change the message format
-- Edit `vercel.json` to change the schedule (default is daily at 9:00 AM, format: `0 9 * * *`) 
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
