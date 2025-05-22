@@ -1,24 +1,9 @@
 {
-  "version": 2,
+  "installCommand": "npm run install:linux-x64",
   "crons": [
     {
-      "path": "/api/post-slack-answer",
-      "schedule": "*/5 * * * *"
-    }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  },
-  "builds": [
-    {
-      "src": "api/**/*.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/api/$1"
+      "path": "/api/cron/post-slack-answer",
+      "schedule": "0 * * * *"
     }
   ]
-} 
+}
