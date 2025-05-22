@@ -1,5 +1,4 @@
-// Make sure to install these dependencies:
-// npm install dayjs
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 import dayjs from 'dayjs';
 
