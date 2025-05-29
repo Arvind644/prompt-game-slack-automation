@@ -23,26 +23,19 @@ export async function GET(req: NextRequest) {
     const isScheduled = req.headers.get('x-vercel-cron') === 'true';
     const authHeader = req.headers.get('authorization');
 
-    // Handle authorization based on request type
+    // Only check authorization for scheduled cron jobs
     if (isScheduled) {
-      // For scheduled cron jobs, check CRON_SECRET
       if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         console.log('Unauthorized, cron secret token is not correct');
         return new Response('Unauthorized', {
           status: 401,
         });
       }
-    } else {
-      // For manual HTTP requests, check API_SECRET_TOKEN
-      const expectedToken = process.env.API_SECRET_TOKEN;
-      
-      if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
-        console.log('Unauthorized, api secret token is not correct');
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-      }
-      
-      // Check if we're in the correct time window (e.g., between 9 AM and 10 AM)
-      // Skip this check if a 'force' parameter is provided
+    }
+    
+    // For manual requests, check if we're in the correct time window
+    // Skip this check if a 'force' parameter is provided
+    if (!isScheduled) {
       const { searchParams } = new URL(req.url);
       const force = searchParams.get('force');
       
