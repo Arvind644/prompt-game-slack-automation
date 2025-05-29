@@ -2,7 +2,7 @@
   "buildCommand": "npm run build",
   "crons": [
     {
-      "path": "/api/cron/promptgame",
+      "path": "/app/api/cron/promptgame",
       "schedule": "0 */2 * * *"
     }
   ]
