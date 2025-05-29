@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/app/api/cron/promptgame",
-      "schedule": "0 */2 * * *"
+      "schedule": "* * * * *"
     }
   ]
 }
