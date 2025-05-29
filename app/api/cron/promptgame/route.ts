@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server';
 import dayjs from 'dayjs';
 
-// Import the working JavaScript modules directly
-const { getPromptFromPreviousDay } = require('../../../../db/database');
-const { postToSlack, formatPromptMessage } = require('../../../../db/slack');
+// Import the working JavaScript modules using ES module syntax
+import { getPromptFromPreviousDay } from '../../../../db/database.js';
+import { postToSlack, formatPromptMessage } from '../../../../db/slack.js';
 
 /**
  * Next.js API route to post yesterday's prompt to Slack
