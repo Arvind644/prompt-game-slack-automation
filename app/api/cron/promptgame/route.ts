@@ -21,18 +21,19 @@ export async function GET(req: NextRequest) {
   try {
     // Check if this is a scheduled execution or an HTTP request
     const isScheduled = req.headers.get('x-vercel-cron') === 'true';
-
     const authHeader = req.headers.get('authorization');
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+
+    // Handle authorization based on request type
+    if (isScheduled) {
+      // For scheduled cron jobs, check CRON_SECRET
+      if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         console.log('Unauthorized, cron secret token is not correct');
         return new Response('Unauthorized', {
-        status: 401,
-      });
-    }
-    
-    // If it's an HTTP request, add basic authorization check
-    if (!isScheduled) {
-      const authHeader = req.headers.get('authorization');
+          status: 401,
+        });
+      }
+    } else {
+      // For manual HTTP requests, check API_SECRET_TOKEN
       const expectedToken = process.env.API_SECRET_TOKEN;
       
       if (!authHeader || authHeader !== `Bearer ${expectedToken}`) {
