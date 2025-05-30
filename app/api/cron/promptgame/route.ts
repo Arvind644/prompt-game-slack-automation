@@ -47,33 +47,6 @@ export async function GET(req: NextRequest) {
       console.log('✅ Cron authorization successful');
     }
     
-    // For manual requests, check if we're in the correct time window
-    // Skip this check if a 'force' parameter is provided
-    if (!isScheduled) {
-      console.log('👤 Processing as manual request');
-      const { searchParams } = new URL(req.url);
-      const force = searchParams.get('force');
-      
-      console.log('⏰ Time window check:', { force, url: req.url });
-      
-      if (!force) {
-        const currentHour = dayjs().hour();
-        const targetHour = parseInt(process.env.NOTIFICATION_HOUR || '9', 10);
-        
-        console.log('⏰ Time check:', { currentHour, targetHour });
-        
-        if (currentHour !== targetHour) {
-          console.log('❌ Not in correct time window');
-          return NextResponse.json({ 
-            message: 'Not the correct time window for posting', 
-            currentHour,
-            targetHour
-          });
-        }
-      }
-      console.log('✅ Time window check passed');
-    }
-    
     console.log('📊 Getting yesterday\'s prompt from database...');
     // Get yesterday's prompt from the database
     const yesterdayPrompt = await getPromptFromPreviousDay();
