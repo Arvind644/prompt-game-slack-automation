@@ -4,7 +4,7 @@ const axios = require('axios');
 const slackToken = process.env.SLACK_BOT_TOKEN;
 const slackChannel = process.env.SLACK_CHANNEL_ID;
 
-async function postToSlack(message) {
+async function postToSlack(message, imageUrl = null) {
   console.log('Preparing to post to Slack...');
   console.log('Slack token configured:', slackToken ? 'Yes' : 'No');
   console.log('Slack channel configured:', slackChannel ? 'Yes' : 'No');
@@ -21,11 +21,32 @@ async function postToSlack(message) {
     console.log(`Posting message to Slack channel: ${slackChannel}`);
     console.log('Message length:', message.length);
     
-    // Use Slack's Web API to post a message
-    const response = await axios.post('https://slack.com/api/chat.postMessage', {
+    // Prepare the message payload
+    let messagePayload = {
       channel: slackChannel,
-      text: message
-    }, {
+      text: message // Fallback text for notifications
+    };
+
+    // If we have an image URL, use blocks for better formatting
+    if (imageUrl) {
+      messagePayload.blocks = [
+        {
+          type: "section",
+          text: {
+            type: "mrkdwn",
+            text: message
+          }
+        },
+        {
+          type: "image",
+          image_url: imageUrl,
+          alt_text: "Prompt Game Image"
+        }
+      ];
+    }
+    
+    // Use Slack's Web API to post a message
+    const response = await axios.post('https://slack.com/api/chat.postMessage', messagePayload, {
       headers: {
         'Authorization': `Bearer ${slackToken}`,
         'Content-Type': 'application/json'
@@ -61,7 +82,10 @@ function formatPromptMessage(prompt) {
   
   if (!prompt) {
     console.log('No prompt provided, returning default message');
-    return 'No prompt was found for yesterday.';
+    return {
+      message: 'No prompt was found for yesterday.',
+      imageUrl: null
+    };
   }
 
   console.log('Prompt data available:', Object.keys(prompt).join(', '));
@@ -69,8 +93,24 @@ function formatPromptMessage(prompt) {
   // Create a nicely formatted message with the prompt information
   let message = '📣 *Prompt Game Answer Reveal* 📣\n\n';
   
+  // Clean and construct the full image URL
+  let cleanImageUrl = null;
   if (prompt.imageUrl) {
-    message += `*Image:* ${prompt.imageUrl}\n`;
+    let imageFileName = prompt.imageUrl;
+    
+    // Remove @ symbol if it exists at the beginning
+    if (imageFileName.startsWith('@')) {
+      imageFileName = imageFileName.substring(1);
+    }
+    
+    // If it's just a filename (UUID.png), construct the full URL
+    if (!imageFileName.startsWith('http')) {
+      cleanImageUrl = `https://campus-uploads.buildclub.ai/${imageFileName}`;
+    } else {
+      cleanImageUrl = imageFileName;
+    }
+    
+    console.log('Constructed image URL:', cleanImageUrl);
   }
   
   message += `*Yesterday's Prompt:* ${prompt.promptText || 'Not provided'}\n`;
@@ -81,7 +121,10 @@ function formatPromptMessage(prompt) {
   message += '\nHow did your guesses compare? 🤔';
   
   console.log('Message formatted successfully');
-  return message;
+  return {
+    message: message,
+    imageUrl: cleanImageUrl
+  };
 }
 
 module.exports = {

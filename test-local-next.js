@@ -74,11 +74,12 @@ async function testDatabaseOnly(dateStr) {
     
     if (prompt && !skipSlack) {
       console.log('Testing Slack message formatting...');
-      const message = formatPromptMessage(prompt);
-      console.log('Formatted message:', message);
+      const messageData = formatPromptMessage(prompt);
+      console.log('Formatted message:', messageData.message);
+      console.log('Image URL:', messageData.imageUrl);
       
       console.log('Testing Slack posting...');
-      const slackResult = await postToSlack(message);
+      const slackResult = await postToSlack(messageData.message, messageData.imageUrl);
       console.log('Slack result:', slackResult);
     }
     
@@ -123,11 +124,11 @@ async function runNextStyleTest() {
     
     // Format the message
     console.log('Formatting prompt message...');
-    const message = formatPromptMessage(yesterdayPrompt);
+    const messageData = formatPromptMessage(yesterdayPrompt);
     
     // Post the message to Slack
     console.log('Posting to Slack...');
-    const slackResponse = await postToSlack(message);
+    const slackResponse = await postToSlack(messageData.message, messageData.imageUrl);
     
     // Return the result
     if (slackResponse.success) {

@@ -59,13 +59,14 @@ export async function GET(req: NextRequest) {
     
     console.log('📝 Formatting message...');
     // Format the message
-    const message = formatPromptMessage(yesterdayPrompt);
+    const messageData = formatPromptMessage(yesterdayPrompt);
     
-    console.log('📝 Message formatted, length:', message.length);
+    console.log('📝 Message formatted, length:', messageData.message.length);
+    console.log('🖼️ Image URL:', messageData.imageUrl ? 'Present' : 'None');
     console.log('📤 Posting to Slack...');
     
     // Post the message to Slack
-    const slackResponse = await postToSlack(message);
+    const slackResponse = await postToSlack(messageData.message, messageData.imageUrl);
     
     console.log('📤 Slack response:', {
       success: slackResponse.success,

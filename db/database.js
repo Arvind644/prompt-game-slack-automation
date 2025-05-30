@@ -15,14 +15,14 @@ async function getPromptFromPreviousDay() {
     await pool.query('SELECT NOW()');
     console.log('Database connection successful');
     
-    // Calculate the date for yesterday in YYYY-MM-DD format
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = yesterday.toISOString().split('T')[0];
+    // Calculate the date for day before yesterday (2 days ago) in YYYY-MM-DD format
+    const dayBeforeYesterday = new Date();
+    dayBeforeYesterday.setDate(dayBeforeYesterday.getDate() - 2);
+    const dayBeforeYesterdayStr = dayBeforeYesterday.toISOString().split('T')[0];
     
-    console.log(`Querying for prompts from date: ${yesterdayStr}`);
+    console.log(`Querying for prompts from date: ${dayBeforeYesterdayStr}`);
     
-    // Raw SQL query to get the prompt from yesterday
+    // Raw SQL query to get the prompt from day before yesterday
     // Updated to use daily_images table instead of prompts
     const query = `
       SELECT id, prompt, image_url, embedding
@@ -31,12 +31,12 @@ async function getPromptFromPreviousDay() {
       LIMIT 1
     `;
     
-    const result = await pool.query(query, [yesterdayStr]);
+    const result = await pool.query(query, [dayBeforeYesterdayStr]);
     
     console.log(`Query returned ${result.rows.length} results`);
     
     if (result.rows.length === 0) {
-      console.log('No prompts found for yesterday');
+      console.log('No prompts found for the day before yesterday');
       return null;
     }
     
@@ -53,7 +53,7 @@ async function getPromptFromPreviousDay() {
       promptText: prompt.prompt,
       imageUrl: prompt.image_url,
       embedding: prompt.embedding,
-      date: new Date(yesterdayStr)
+      date: new Date(dayBeforeYesterdayStr)
     };
   } catch (error) {
     console.error('Database query error:', error);
