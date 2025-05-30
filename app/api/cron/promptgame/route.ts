@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic'
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
-import dayjs from 'dayjs';
 
 // Import the working JavaScript modules using ES module syntax
 import { getPromptFromPreviousDay } from '../../../../db/database.js';
