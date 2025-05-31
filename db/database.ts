@@ -14,6 +14,12 @@ interface PromptData {
   date: Date;
 }
 
+interface LeaderboardEntry {
+  username: string;
+  similarity: number;
+  percentage: number;
+}
+
 export async function getPromptFromPreviousDay(): Promise<PromptData | null> {
   try {
     console.log('Connecting to database...');
@@ -62,6 +68,74 @@ export async function getPromptFromPreviousDay(): Promise<PromptData | null> {
       imageUrl: prompt.image_url,
       embedding: prompt.embedding,
       date: new Date(dayBeforeYesterdayStr)
+    };
+  } catch (error) {
+    console.error('Database query error:', error);
+    throw error;
+  }
+}
+
+export async function getTopSubmissionsForDay(day: number): Promise<{ prompt: string; imageUrl: string | null; leaderboard: LeaderboardEntry[] }> {
+  try {
+    console.log('Getting top submissions for day:', day);
+    
+    // Test the connection
+    await pool.query('SELECT NOW()');
+    console.log('Database connection successful');
+    
+    // Get the prompt for the specified day by finding the daily_images record for that day
+    // We need to calculate the date based on the day number
+    // Assuming day 0 is the most recent, day 1 is yesterday, etc.
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - day);
+    const targetDateStr = targetDate.toISOString().split('T')[0];
+    
+    console.log(`Looking for prompt on date: ${targetDateStr} (day ${day})`);
+    
+    const promptQuery = `
+      SELECT prompt, image_url
+      FROM daily_images
+      WHERE DATE(created_at) = $1
+      LIMIT 1
+    `;
+    
+    const promptResult = await pool.query(promptQuery, [targetDateStr]);
+    
+    if (promptResult.rows.length === 0) {
+      throw new Error(`No prompt found for day ${day} (date: ${targetDateStr})`);
+    }
+    
+    const prompt = promptResult.rows[0].prompt;
+    const imageUrl = promptResult.rows[0].image_url;
+    
+    // Get top 3 submissions with usernames for the same date as the prompt
+    // Query by submission date instead of day column to ensure consistency
+    // Group by username to show only the best submission per user
+    const leaderboardQuery = `
+      SELECT u.username, MAX(s.similarity) as similarity
+      FROM image_prompt_guessing_game_submissions s
+      JOIN users u ON s.user_id = u.user_id
+      WHERE DATE(s.created_at) = $1
+      GROUP BY u.username
+      ORDER BY MAX(s.similarity) DESC
+      LIMIT 3
+    `;
+    
+    const leaderboardResult = await pool.query(leaderboardQuery, [targetDateStr]);
+    
+    console.log(`Found ${leaderboardResult.rows.length} submissions for date ${targetDateStr}`);
+    
+    // Convert similarity to percentage
+    const leaderboard: LeaderboardEntry[] = leaderboardResult.rows.map(row => ({
+      username: row.username,
+      similarity: row.similarity,
+      percentage: Math.round(row.similarity * 10000) / 100 // Convert to percentage with 2 decimal places
+    }));
+    
+    return {
+      prompt,
+      imageUrl,
+      leaderboard
     };
   } catch (error) {
     console.error('Database query error:', error);

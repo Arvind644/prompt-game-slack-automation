@@ -24,6 +24,12 @@ interface FormattedPromptMessage {
   imageUrl: string | null;
 }
 
+interface LeaderboardEntry {
+  username: string;
+  similarity: number;
+  percentage: number;
+}
+
 export async function postToSlack(message: string, imageUrl: string | null = null): Promise<SlackResponse> {
   console.log('Preparing to post to Slack...');
   console.log('Slack token configured:', slackToken ? 'Yes' : 'No');
@@ -141,6 +147,52 @@ export function formatPromptMessage(prompt: PromptData | null): FormattedPromptM
   message += '\nHow did your guesses compare? 🤔';
   
   console.log('Message formatted successfully');
+  return {
+    message: message,
+    imageUrl: cleanImageUrl
+  };
+}
+
+export function formatLeaderboardMessage(prompt: string, leaderboard: LeaderboardEntry[], imageUrl: string | null = null): FormattedPromptMessage {
+  console.log('Formatting leaderboard message...');
+  
+  let message = '📣 *Prompt Game Answer Reveal* 📣\n\n';
+  message += `*Yesterday's Prompt:* ${prompt}\n\n`;
+  
+  if (leaderboard.length === 0) {
+    message += 'No submissions found for this prompt.\n\n';
+  } else {
+    // Add each leaderboard entry
+    leaderboard.forEach((entry, index) => {
+      message += `- ${entry.username} - ${entry.percentage}%\n`;
+    });
+    message += '\n';
+  }
+  
+  message += 'What score did you get? Comment below!\n\n';
+  message += 'P.S. a new image is out for today try it to test your prompting skills here: https://games.buildclub.ai';
+  
+  // Clean and construct the full image URL (same logic as formatPromptMessage)
+  let cleanImageUrl: string | null = null;
+  if (imageUrl) {
+    let imageFileName = imageUrl;
+    
+    // Remove @ symbol if it exists at the beginning
+    if (imageFileName.startsWith('@')) {
+      imageFileName = imageFileName.substring(1);
+    }
+    
+    // If it's just a filename (UUID.png), construct the full URL
+    if (!imageFileName.startsWith('http')) {
+      cleanImageUrl = `https://campus-uploads.buildclub.ai/${imageFileName}`;
+    } else {
+      cleanImageUrl = imageFileName;
+    }
+    
+    console.log('Constructed leaderboard image URL:', cleanImageUrl);
+  }
+  
+  console.log('Leaderboard message formatted successfully');
   return {
     message: message,
     imageUrl: cleanImageUrl

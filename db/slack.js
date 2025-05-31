@@ -127,7 +127,54 @@ function formatPromptMessage(prompt) {
   };
 }
 
+function formatLeaderboardMessage(prompt, leaderboard, imageUrl = null) {
+  console.log('Formatting leaderboard message...');
+  
+  let message = '📣 *Prompt Game Answer Reveal* 📣\n\n';
+  message += `*Yesterday's Prompt:* ${prompt}\n\n`;
+  
+  if (leaderboard.length === 0) {
+    message += 'No submissions found for this prompt.\n\n';
+  } else {
+    // Add each leaderboard entry
+    leaderboard.forEach((entry, index) => {
+      message += `- ${entry.username} - ${entry.percentage}%\n`;
+    });
+    message += '\n';
+  }
+  
+  message += 'What score did you get? Comment below!\n\n';
+  message += 'P.S. a new image is out for today try it to test your prompting skills here: https://games.buildclub.ai';
+  
+  // Clean and construct the full image URL (same logic as formatPromptMessage)
+  let cleanImageUrl = null;
+  if (imageUrl) {
+    let imageFileName = imageUrl;
+    
+    // Remove @ symbol if it exists at the beginning
+    if (imageFileName.startsWith('@')) {
+      imageFileName = imageFileName.substring(1);
+    }
+    
+    // If it's just a filename (UUID.png), construct the full URL
+    if (!imageFileName.startsWith('http')) {
+      cleanImageUrl = `https://campus-uploads.buildclub.ai/${imageFileName}`;
+    } else {
+      cleanImageUrl = imageFileName;
+    }
+    
+    console.log('Constructed leaderboard image URL:', cleanImageUrl);
+  }
+  
+  console.log('Leaderboard message formatted successfully');
+  return {
+    message: message,
+    imageUrl: cleanImageUrl
+  };
+}
+
 module.exports = {
   postToSlack,
-  formatPromptMessage
+  formatPromptMessage,
+  formatLeaderboardMessage
 }; 

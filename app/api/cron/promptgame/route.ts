@@ -4,11 +4,11 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server';
 
 // Import the working JavaScript modules using ES module syntax
-import { getPromptFromPreviousDay } from '../../../../db/database.js';
-import { postToSlack, formatPromptMessage } from '../../../../db/slack.js';
+import { getTopSubmissionsForDay } from '../../../../db/database.js';
+import { postToSlack, formatLeaderboardMessage } from '../../../../db/slack.js';
 
 /**
- * Next.js API route to post yesterday's prompt to Slack
+ * Next.js API route to post leaderboard results to Slack
  * This function can be triggered:
  * 1. Via a scheduled cron job (using Vercel Cron)
  * 2. Via direct HTTP call with proper authorization
@@ -46,20 +46,26 @@ export async function GET(req: NextRequest) {
       console.log('✅ Cron authorization successful');
     }
     
-    console.log('📊 Getting yesterday\'s prompt from database...');
-    // Get yesterday's prompt from the database
-    const yesterdayPrompt = await getPromptFromPreviousDay();
+    // Use day 2 to maintain the same timing as before (day before yesterday)
+    const day = 2;
+    console.log(`🏆 Getting leaderboard for day ${day} (day before yesterday)...`);
+    
+    // Get the leaderboard data from the database
+    const { prompt, imageUrl, leaderboard } = await getTopSubmissionsForDay(day);
     
     console.log('📊 Database result:', {
-      promptFound: !!yesterdayPrompt,
-      promptId: yesterdayPrompt?._id,
-      hasPromptText: !!yesterdayPrompt?.promptText,
-      hasImageUrl: !!yesterdayPrompt?.imageUrl
+      promptFound: !!prompt,
+      hasImageUrl: !!imageUrl,
+      leaderboardEntries: leaderboard.length
     });
     
-    console.log('📝 Formatting message...');
+    if (leaderboard.length > 0) {
+      console.log('🏆 Top entries:', leaderboard.map(entry => `${entry.username}: ${entry.percentage}%`).join(', '));
+    }
+    
+    console.log('📝 Formatting leaderboard message...');
     // Format the message
-    const messageData = formatPromptMessage(yesterdayPrompt);
+    const messageData = formatLeaderboardMessage(prompt, leaderboard, imageUrl);
     
     console.log('📝 Message formatted, length:', messageData.message.length);
     console.log('🖼️ Image URL:', messageData.imageUrl ? 'Present' : 'None');
@@ -79,8 +85,10 @@ export async function GET(req: NextRequest) {
     if (slackResponse.success) {
       console.log('✅ Successfully completed cron job');
       return NextResponse.json({ 
-        message: 'Successfully posted to Slack',
-        promptId: yesterdayPrompt?._id || null
+        message: 'Successfully posted leaderboard to Slack',
+        day: day,
+        prompt: prompt.substring(0, 100) + '...',
+        entriesCount: leaderboard.length
       });
     } else {
       console.log('❌ Failed to post to Slack:', slackResponse.error);
